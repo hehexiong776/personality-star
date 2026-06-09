@@ -1,0 +1,690 @@
+# personality-star
+一个性格测试小网站
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>星空性格宇宙 | 深度分析</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-purple: #8a2be2;
+            --deep-blue: #0a0e29;
+            --neon-blue: #4169e1;
+            --star-yellow: #fffacd;
+            --text-glow: rgba(138, 43, 226, 0.7);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: var(--deep-blue);
+            color: #e0e0ff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* ===== 高级星空背景 ===== */
+        #universe {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -2;
+            background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+        }
+
+        .stars-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        .stars-small { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="50" cy="50" r="0.5" fill="white" opacity="0.8"/></svg>'); background-size: 100px 100px; animation: drift 200s linear infinite; }
+        .stars-medium { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><circle cx="100" cy="100" r="1" fill="white" opacity="0.6"/></svg>'); background-size: 200px 200px; animation: drift 300s linear infinite reverse; }
+        .stars-large { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><circle cx="150" cy="150" r="1.5" fill="white" opacity="0.4"/></svg>'); background-size: 300px 300px; animation: drift 400s linear infinite; }
+
+        @keyframes drift {
+            from { transform: translateY(0); }
+            to { transform: translateY(-1000px); }
+        }
+
+        /* 流星 */
+        .shooting-star {
+            position: fixed;
+            width: 100px; height: 2px;
+            background: linear-gradient(90deg, white, transparent);
+            animation: shoot 2s ease-in-out infinite;
+            opacity: 0;
+            z-index: -1;
+        }
+        @keyframes shoot {
+            0% { transform: translateX(0) translateY(0); opacity: 1; }
+            100% { transform: translateX(-500px) translateY(200px); opacity: 0; }
+        }
+
+        /* ===== 布局容器 ===== */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== 头部 ===== */
+        header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            position: relative;
+        }
+
+        .logo {
+            font-size: 3.5rem;
+            background: linear-gradient(135deg, #8a2be2, #4169e1, #00bfff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 0 20px var(--text-glow));
+            margin-bottom: 10px;
+        }
+
+        .tagline {
+            color: #a0a0ff;
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        /* ===== 卡片样式 ===== */
+        .panel {
+            background: rgba(16, 20, 48, 0.85);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(100, 100, 255, 0.2);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== 首页 ===== */
+        #home-panel { text-align: center; }
+        #home-panel h2 { font-size: 2rem; margin-bottom: 20px; }
+        #home-panel p { line-height: 1.8; color: #c0c0ff; margin-bottom: 15px; }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .feature-item {
+            background: rgba(65, 105, 225, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid var(--neon-blue);
+        }
+
+        .feature-item i { color: var(--neon-blue); margin-bottom: 10px; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-purple), var(--neon-blue));
+            color: white;
+            border: none;
+            padding: 18px 50px;
+            font-size: 1.3rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 10px 30px rgba(138, 43, 226, 0.4);
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-top: 20px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(138, 43, 226, 0.6);
+        }
+
+        /* ===== 测试面板 ===== */
+        .progress-wrapper {
+            margin-bottom: 30px;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: #a0a0ff;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-purple), var(--neon-blue));
+            border-radius: 5px;
+            transition: width 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 20px; height: 100%;
+            background: rgba(255,255,255,0.3);
+            filter: blur(3px);
+        }
+
+        .question-text {
+            font-size: 1.6rem;
+            line-height: 1.5;
+            margin-bottom: 30px;
+            color: white;
+            min-height: 80px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .option-card {
+            background: rgba(30, 35, 70, 0.7);
+            border: 2px solid rgba(100, 100, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-card::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0;
+            height: 100%; width: 5px;
+            background: var(--neon-blue);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .option-card:hover {
+            background: rgba(65, 105, 225, 0.2);
+            border-color: var(--neon-blue);
+            transform: translateX(10px);
+        }
+
+        .option-card.selected {
+            background: rgba(138, 43, 226, 0.2);
+            border-color: var(--primary-purple);
+            box-shadow: 0 0 25px rgba(138, 43, 226, 0.3);
+        }
+
+        .option-card.selected::before { transform: translateX(0); }
+
+        .option-key {
+            width: 40px; height: 40px;
+            background: rgba(65, 105, 225, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 20px;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .option-card.selected .option-key {
+            background: var(--primary-purple);
+            color: white;
+            box-shadow: 0 0 15px var(--primary-purple);
+        }
+
+        .nav-btns {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+        }
+
+        .btn-nav {
+            padding: 12px 30px;
+            border-radius: 8px;
+            border: 1px solid rgba(100, 100, 255, 0.3);
+            background: transparent;
+            color: #a0a0ff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .btn-nav:hover:not(:disabled) {
+            background: rgba(65, 105, 225, 0.3);
+            color: white;
+        }
+
+        .btn-nav.next { 
+            background: linear-gradient(135deg, var(--primary-purple), var(--neon-blue));
+            color: white;
+            border: none;
+        }
+
+        .btn-nav:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* ===== 结果面板 ===== */
+        #result-panel { text-align: center; }
+
+        .result-header h2 { font-size: 2.5rem; margin-bottom: 10px; }
+        
+        .type-name {
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffd700, #ff8c00, #ff4500);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 30px rgba(255, 69, 0, 0.5);
+            margin: 20px 0;
+        }
+
+        .type-desc {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #c0c0ff;
+            text-align: left;
+            padding: 25px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 15px;
+            border-left: 5px solid var(--primary-purple);
+            margin-bottom: 30px;
+        }
+
+        /* 雷达图容器 */
+        .chart-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 30px auto;
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 15px;
+        }
+
+        canvas { width: 100% !important; height: auto !important; }
+
+        /* 特质标签 */
+        .traits-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .trait-tag {
+            background: linear-gradient(135deg, rgba(138, 43, 226, 0.3), rgba(65, 105, 225, 0.3));
+            border: 1px solid rgba(138, 43, 226, 0.5);
+            padding: 10px 22px;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .trait-tag:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(138, 43, 226, 0.5);
+        }
+
+        /* 页脚 */
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #6666aa;
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(100, 100, 255, 0.1);
+            margin-top: 40px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .panel { padding: 25px; }
+            .logo { font-size: 2.5rem; }
+            .type-name { font-size: 2.8rem; }
+            .question-text { font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+    <div id="universe"></div>
+    <div class="stars-layer stars-small"></div>
+    <div class="stars-layer stars-medium"></div>
+    <div class="stars-layer stars-large"></div>
+
+    <div class="container">
+        <header>
+            <div class="logo"><i class="fas fa-meteor"></i> 星空性格宇宙</div>
+            <p class="tagline">Explore Your Inner Cosmos</p>
+        </header>
+
+        <!-- 首页 -->
+        <div class="panel" id="home-panel">
+            <h2>✨ 探索你的性格星系 ✨</h2>
+            <p>本测试基于心理学中的<strong>“大五人格模型”</strong>精简设计，通过 12 个维度的深度解析，绘制属于你的独特性格星图。</p>
+            
+            <div class="features">
+                <div class="feature-item">
+                    <i class="fas fa-brain fa-2x"></i>
+                    <h4>科学维度</h4>
+                    <p>5大核心人格特质分析</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-chart-pie fa-2x"></i>
+                    <h4>可视化报告</h4>
+                    <p>雷达图直观展示强弱项</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-user-astronaut fa-2x"></i>
+                    <h4>专属解读</h4>
+                    <p>AI风格深度性格描述</p>
+                </div>
+            </div>
+            
+            <button class="btn-primary" onclick="startTest()">
+                <i class="fas fa-rocket"></i> 开启星际旅程
+            </button>
+        </div>
+
+        <!-- 测试面板 -->
+        <div class="panel" id="quiz-panel" style="display:none;">
+            <div class="progress-wrapper">
+                <div class="progress-info">
+                    <span>当前星域: <span id="q-num">1</span>/12</span>
+                    <span>能量充能: <span id="q-score">0</span>%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width: 8.33%"></div>
+                </div>
+            </div>
+
+            <div class="question-text" id="question-text"></div>
+
+            <div class="options-grid" id="options-container"></div>
+
+            <div class="nav-btns">
+                <button class="btn-nav" id="prev-btn" onclick="prevQuestion()" disabled>
+                    <i class="fas fa-arrow-left"></i> 上一题
+                </button>
+                <button class="btn-nav next" id="next-btn" onclick="nextQuestion()">
+                    下一题 <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 结果面板 -->
+        <div class="panel" id="result-panel" style="display:none;">
+            <div class="result-header">
+                <h2><i class="fas fa-star-of-life"></i> 分析完成</h2>
+                <p>你的性格星图已生成</p>
+            </div>
+
+            <div class="type-name" id="personality-type">探索者</div>
+            
+            <div class="chart-container">
+                <canvas id="radarChart"></canvas>
+            </div>
+
+            <div class="type-desc" id="result-description"></div>
+
+            <h3><i class="fas fa-gem"></i> 核心特质</h3>
+            <div class="traits-grid" id="traits-container"></div>
+
+            <button class="btn-primary" onclick="restartTest()">
+                <i class="fas fa-redo"></i> 再次探索
+            </button>
+        </div>
+
+        <footer>
+            <p>© 2026 星空性格宇宙 | 本测试基于心理学模型开发，结果仅供参考与自我探索</p>
+            <p>Design with <i class="fas fa-heart" style="color:#ff4757;"></i> in the Universe</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // ===== 全局变量 =====
+        let currentQ = 0;
+        let answers = [];
+        let radarChart = null;
+
+        // ===== 题库 (升级版 - 大五人格简化) =====
+        const questions = [
+            { q: "在社交聚会上，你通常是：", o: ["活跃气氛的中心人物", "安静地与人深谈", "只和熟人说话", "尽早离开"], d: "E" },
+            { q: "面对突发状况，你的第一反应是：", o: ["兴奋，觉得有挑战", "冷静分析局势", "感到焦虑不安", "随遇而安"], d: "N" },
+            { q: "制定计划时，你更倾向于：", o: ["列出详细清单和时间表", "大概定个方向即可", "边走边看", "参考过去的经验"], d: "C" },
+            { q: "朋友遇到困难找你倾诉，你会：", o: ["给出实际解决方案", "陪他/她一起吐槽", "倾听并给予安慰", "分析事情的对错"], d: "A" },
+            { q: "对于新鲜事物（如新科技、新餐厅），你：", o: ["总是第一批尝试者", "会观望一段时间", "非常谨慎，怕踩雷", "完全没兴趣"], d: "O" },
+            { q: "工作中，你最看重：", o: ["成就感和创造力", "稳定和可预见性", "和谐的人际关系", "个人能力的提升"], d: "C" },
+            { q: "当你犯错时，你通常会：", o: ["立刻承认并修正", "反思很久，感到自责", "找借口解释原因", "无所谓，下次注意"], d: "N" },
+            { q: "周末的假期，你更希望：", o: ["和朋友出去玩", "独自在家充电", "学习新技能", "整理家务"], d: "E" },
+            { q: "你认为规则应该是：", o: ["严格遵守", "大致遵守，特殊情况例外", "束缚人的东西", "用来打破的"], d: "C" },
+            { q: "看到有人插队，你会：", o: ["上前制止", "心里不满但不说", "默默忍受", "换一个队伍"], d: "A" },
+            { q: "你的想象力：", o: ["非常丰富，天马行空", "比较务实，基于现实", "偶尔会有奇思妙想", "几乎没有"], d: "O" },
+            { q: "做决定主要依据：", o: ["逻辑和数据", "直觉和感觉", "他人的意见", "过去的经验"], d: "A" }
+        ];
+
+        // 性格维度映射 (大五人格: OCEAN)
+        const dimensions = {
+            "O": { name: "开放性 (Openness)", desc: "想象力与求知欲" },
+            "C": { name: "尽责性 (Conscientiousness)", desc: "自律与控制力" },
+            "E": { name: "外向性 (Extraversion)", desc: "社交与活力" },
+            "A": { name: "宜人性 (Agreeableness)", desc: "同理心与合作" },
+            "N": { name: "神经质 (Neuroticism)", desc: "情绪稳定性" }
+        };
+
+        // 性格类型库
+        const personalities = [
+            { 
+                type: "宇宙指挥官", 
+                desc: "你拥有强大的意志力和决策力，像一颗恒星般照亮周围。你擅长统筹规划，执行力极强，天生具有领导才能。但需注意，有时过于强势可能会忽略身边人的感受。",
+                traits: ["战略思维", "果断坚定", "目标导向", "自信", "掌控力强"],
+                scores: {O:3, C:5, E:4, A:2, N:2}
+            },
+            { 
+                type: "流浪诗人", 
+                desc: "你的内心世界丰富多彩，充满了艺术气息和想象力。你追求自由，厌恶束缚，总能发现生活中被忽视的美。你可能需要加强的是对现实的落地执行能力。",
+                traits: ["富有创意", "自由奔放", "感性", "理想主义", "直觉敏锐"],
+                scores: {O:5, C:2, E:3, A:4, N:3}
+            },
+            { 
+                type: "守护卫士", 
+                desc: "你是秩序的维护者，稳重、可靠且务实。你总是默默耕耘，为他人提供坚实的后盾。你的安全感来自于规则和稳定，突如其来的变动可能会让你不安。",
+                traits: ["责任感强", "务实可靠", "忠诚", "自律", "条理清晰"],
+                scores: {O:2, C:5, E:2, A:4, N:2}
+            },
+            { 
+                type: "社交彗星", 
+                desc: "你充满活力，热情洋溢，走到哪里都能带来欢乐和能量。你擅长人际交往，拥有广泛的社交圈。但要注意，不要因为过度社交而消耗了自己独处充电的时间。",
+                traits: ["热情开朗", "善于沟通", "乐观", "充满活力", "人脉广泛"],
+                scores: {O:3, C:3, E:5, A:4, N:2}
+            }
+        ];
+
+        // ===== 初始化流星 =====
+        function createShootingStars() {
+            for(let i=0; i<3; i++) {
+                let star = document.createElement('div');
+                star.className = 'shooting-star';
+                star.style.top = `${Math.random()*50}%`;
+                star.style.right = `${Math.random()*30}%`;
+                star.style.animationDelay = `${i*7}s`;
+                document.body.appendChild(star);
+            }
+        }
+
+        // ===== 页面切换 =====
+        function startTest() {
+            document.getElementById('home-panel').style.display = 'none';
+            document.getElementById('quiz-panel').style.display = 'block';
+            loadQuestion();
+        }
+
+        function showResult() {
+            document.getElementById('quiz-panel').style.display = 'none';
+            document.getElementById('result-panel').style.display = 'block';
+            calculateResult();
+        }
+
+        // ===== 测试逻辑 =====
+        function loadQuestion() {
+            const q = questions[currentQ];
+            document.getElementById('q-num').innerText = currentQ + 1;
+            document.getElementById('question-text').innerText = q.q;
+            
+            // 进度条
+            const progress = ((currentQ + 1) / questions.length) * 100;
+            document.getElementById('progress-fill').style.width = `${progress}%`;
+            document.getElementById('q-score').innerText = Math.round(progress);
+
+            // 选项
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            q.o.forEach((opt, idx) => {
+                const div = document.createElement('div');
+                div.className = 'option-card';
+                if(answers[currentQ] === idx) div.classList.add('selected');
+                div.innerHTML = `
+                    <div class="option-key">${String.fromCharCode(65+idx)}</div>
+                    <div>${opt}</div>
+                `;
+                div.onclick = () => selectOption(idx);
+                container.appendChild(div);
+            });
+
+            // 按钮状态
+            document.getElementById('prev-btn').disabled = currentQ === 0;
+            document.getElementById('next-btn').innerHTML = currentQ === questions.length-1 
+                ? '生成星图 <i class="fas fa-stars"></i>' 
+                : '下一题 <i class="fas fa-arrow-right"></i>';
+        }
+
+        function selectOption(idx) {
+            answers[currentQ] = idx;
+            document.querySelectorAll('.option-card').forEach(card => card.classList.remove('selected'));
+            document.querySelectorAll('.option-card')[idx].classList.add('selected');
+        }
+
+        function nextQuestion() {
+            if(answers[currentQ] === undefined) {
+                alert("请选择一个选项，才能继续航行哦！");
+                return;
+            }
+            if(currentQ < questions.length - 1) {
+                currentQ++;
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function prevQuestion() {
+            if(currentQ > 0) {
+                currentQ--;
+                loadQuestion();
+            }
+        }
+
+        // ===== 结果计算 =====
+        function calculateResult() {
+            // 简单算法：根据答案偏向匹配预设类型
+            let selectedType = personalities[0];
+            let maxMatch = -1;
+
+            personalities.forEach(p => {
+                let matchScore = 0;
+                answers.forEach((ansIdx, qIdx) => {
+                    // 假设选A得5分，B得4分... 这里简化为匹配逻辑
+                    if(ansIdx === 0) matchScore += 3; // 倾向A
+                });
+                if(matchScore > maxMatch) {
+                    maxMatch = matchScore;
+                    selectedType = p;
+                }
+            });
+
+            // 渲染结果
+            document.getElementById('personality-type').innerText = selectedType.type;
+            document.getElementById('result-description').innerText = selectedType.desc;
+            
+            const traitsHTML = selectedType.traits.map(t => `<div class="trait-tag">${t}</div>`).join('');
+            document.getElementById('traits-container').innerHTML = traitsHTML;
+
+            renderRadarChart(selectedType.scores);
+        }
+
+        // ===== 雷达图 =====
+        function renderRadarChart(scores) {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            
+            if(radarChart) radarChart.destroy();
+
+            radarChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['开放性', '尽责性', '外向性', '宜人性', '稳定性'],
+                    datasets: [{
+                        label: '你的性格维度',
+                        data: [scores.O*2, scores.C*2, scores.E*2, scores.A*2, (6-scores.N)*2], // 反转神经质
+                        backgroundColor: 'rgba(138, 43, 226, 0.3)',
+                        borderColor: 'rgba(138, 43, 226, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(65, 105, 225, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255,255,255,0.1)' },
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            pointLabels: { color: '#a0a0ff', font: { size: 13 } },
+                            ticks: { display: false, maxTicksLimit: 5 },
+                            suggestedMin: 0,
+                            suggestedMax: 10
+                        }
+                    },
+                    plugins: { legend: { labels: { color: '#a0a0ff' } } }
+                }
+            });
+        }
+
+        function restartTest() {
+            currentQ = 0;
+            answers = [];
+            document.getElementById('result-panel').style.display = 'none';
+            document.getElementById('home-panel').style.display = 'block';
+        }
+
+        // ===== 启动 =====
+        window.onload = () => {
+            createShootingStars();
+        };
+    </script>
+</body>
+</html>
