@@ -2,33 +2,22 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>呵呵熊制作的星空性格 · 星际航行</title>
+    <title>星空性格 · 星际航行</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; color: white; }
-        
-        /* 画布层 */
         #universe { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
-        
-        /* UI层 */
         .ui-container { position: relative; z-index: 10; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
         .panel { background: rgba(10, 14, 41, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(100, 100, 255, 0.2); border-radius: 20px; padding: 40px; max-width: 600px; width: 90%; text-align: center; animation: fadeIn 0.5s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-        
-        h1 { font-family: 'Orbitron', sans-serif; font-size: 2.5rem; background: linear-gradient(90deg, #8a2be2, #4169e1, #00bfff); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 10px; }
-        p { color: #a0a0ff; line-height: 1.6; }
-        button { background: linear-gradient(135deg, #8a2be2, #4169e1); border: none; padding: 15px 40px; font-size: 1.1rem; color: white; border-radius: 50px; cursor: pointer; margin-top: 20px; transition: all 0.3s ease; font-family: 'Orbitron'; }
-        button:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(138, 43, 226, 0.7); }
-        
-        /* 测试面板 */
+        h1 { font-size: 2.5rem; background: linear-gradient(90deg, #8a2be2, #4169e1, #00bfff); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 10px; }
+        button { background: linear-gradient(135deg, #8a2be2, #4169e1); border: none; padding: 15px 40px; font-size: 1.1rem; color: white; border-radius: 50px; cursor: pointer; margin-top: 20px; }
+        button:hover { transform: scale(1.05); }
         .option { background: rgba(255,255,255,0.05); padding: 15px; margin: 10px 0; border-radius: 10px; cursor: pointer; border: 1px solid transparent; transition: all 0.3s ease; text-align: left; }
         .option:hover { background: rgba(65, 105, 225, 0.3); border-color: #4169e1; transform: translateX(10px); }
         .option.selected { background: rgba(138, 43, 226, 0.3); border-color: #8a2be2; }
-        
-        /* 结果面板 */
         #result { display: none; }
-        #scene-title { font-size: 2rem; color: #ffd700; margin: 20px 0; font-family: 'Orbitron'; }
+        #scene-title { font-size: 2rem; color: #ffd700; margin: 20px 0; }
         #scene-desc { font-style: italic; border-left: 3px solid #4169e1; padding-left: 15px; margin-top: 20px; }
     </style>
 </head>
@@ -37,16 +26,14 @@
     <div class="ui-container">
         <div id="home" class="panel">
             <h1>🌌 星际航行</h1>
-            <p>准备启动曲速引擎，探索你的性格星系。</p>
+            <p>准备启动曲速引擎。</p>
             <button onclick="startTest()">启动引擎</button>
         </div>
-
         <div id="quiz" class="panel" style="display:none;">
             <h2 id="q-text"></h2>
             <div id="options"></div>
             <button onclick="next()">确认航向</button>
         </div>
-
         <div id="result" class="panel" style="display:none;">
             <h2>抵达目的地</h2>
             <div id="scene-title"></div>
@@ -58,7 +45,6 @@
     </div>
 
     <script>
-        // ================== 配置 ==================
         const questions = [
             { q: "航行模式？", o: ["舰队指挥", "单人漂泊", "护航任务", "外交访问", "深空侦察"], d: "E" },
             { q: "遭遇陨石带？", o: ["强行突破", "绕道而行", "建立屏障", "呼叫支援", "分析弱点"], d: "N" },
@@ -68,147 +54,59 @@
         ];
 
         const personalities = [
-            { 
-                type: "🚀 脉冲星指挥官", 
-                desc: "你习惯于掌控全局，你的意志如同脉冲星般规律而强大，指引舰队前行。",
-                traits: ["决断", "战略", "威严"],
-                scene: "pulsar", // 对应场景
-                comment: "前方出现规律闪烁的脉冲星，能量波动稳定，适合建立指挥中心。"
-            },
-            { 
-                type: "🎨 星云流浪者", 
-                desc: "你享受自由的漂泊，你的思绪如同星云般绚烂且不可捉摸。",
-                traits: ["浪漫", "自由", "感性"],
-                scene: "nebula",
-                comment: "你正漂流在一片粉紫色的星云中，粒子轻柔地拂过舷窗。"
-            },
-            { 
-                type: "🛡️ 双星守护者", 
-                desc: "你是稳定的基石，如同相互守护的双星，为周围提供恒定的安全感。",
-                traits: ["忠诚", "稳定", "责任"],
-                scene: "binary",
-                comment: "两颗巨大的行星在你周围互旋，形成完美的引力平衡。"
-            },
-            { 
-                type: "☄️ 虫洞穿梭客", 
-                desc: "你是能量的传递者，在星际网络中跳跃，连接不同的文明。",
-                traits: ["活力", "连接", "热情"],
-                scene: "wormhole",
-                comment: "前方出现扭曲的虫洞，光线被拉长，准备进行超空间跳跃！"
-            },
-            { 
-                type: "🔭 虚空观测者", 
-                desc: "你站在寂静的彼岸，冷静地注视着宇宙的熵增与秩序。",
-                traits: ["理性", "深邃", "孤独"],
-                scene: "blackhole",
-                comment: "警告：前方引力异常！一个巨大的黑洞正在吞噬周围的光。"
-            }
+            { type: "🚀 脉冲星指挥官", desc: "你习惯于掌控全局。", traits: ["决断", "战略"], scene: "pulsar", comment: "前方出现规律闪烁的脉冲星。" },
+            { type: "🎨 星云流浪者", desc: "你享受自由的漂泊。", traits: ["浪漫", "自由"], scene: "nebula", comment: "你正漂流在一片粉紫色的星云中。" },
+            { type: "🛡️ 双星守护者", desc: "你是稳定的基石。", traits: ["忠诚", "稳定"], scene: "binary", comment: "两颗巨大的行星在你周围互旋。" },
+            { type: "☄️ 虫洞穿梭客", desc: "你是能量的传递者。", traits: ["活力", "连接"], scene: "wormhole", comment: "前方出现扭曲的虫洞！" },
+            { type: "🔭 虚空观测者", desc: "你站在寂静的彼岸。", traits: ["理性", "深邃"], scene: "blackhole", comment: "警告：前方引力异常！" }
         ];
 
-        // ================== 全局变量 ==================
         let current = 0, answers = [], scores = {O:0,C:0,E:0,A:0,N:0};
         let canvas, ctx, particles = [];
-        let mouse = { x: window.innerWidth/2, y: window.innerHeight/2 };
-        let currentScene = 'stars'; // 当前场景
+        let mouse = { x: innerWidth/2, y: innerHeight/2 };
+        let currentScene = 'stars';
 
-        // ================== 粒子系统 ==================
         class Particle {
-            constructor(scene) {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.z = Math.random() * canvas.width; // 深度
+            constructor() {
+                this.x = Math.random() * innerWidth;
+                this.y = Math.random() * innerHeight;
+                this.z = Math.random() * innerWidth;
                 this.size = Math.random() * 2 + 0.5;
                 this.speed = Math.random() * 0.5 + 0.2;
-                this.scene = scene;
             }
-
             update() {
-                // 根据场景更新逻辑
-                if (this.scene === 'wormhole') {
-                    // 虫洞：向中心收缩
-                    let dx = canvas.width/2 - this.x;
-                    let dy = canvas.height/2 - this.y;
-                    this.x += dx * 0.01;
-                    this.y += dy * 0.01;
-                    this.z -= 5; // 快速前进
-                } else if (this.scene === 'blackhole') {
-                    // 黑洞：螺旋吸入
-                    let angle = Math.atan2(this.y - canvas.height/2, this.x - canvas.width/2);
-                    let radius = Math.sqrt(Math.pow(this.x - canvas.width/2, 2) + Math.pow(this.y - canvas.height/2, 2));
-                    this.x = canvas.width/2 + radius * Math.cos(angle + 0.02);
-                    this.y = canvas.height/2 + radius * Math.sin(angle + 0.02);
-                    this.z += 0.5;
-                } else if (this.scene === 'pulsar') {
-                    // 脉冲星：规律闪烁
-                    this.x += (mouse.x/100 - this.x) * 0.001;
-                    this.z -= this.speed;
-                } else {
-                    // 默认：星空飞行
-                    this.z -= this.speed;
-                }
-
+                this.z -= this.speed;
                 if (this.z < 1) {
-                    this.z = canvas.width;
-                    this.x = Math.random() * canvas.width;
-                    this.y = Math.random() * canvas.height;
+                    this.z = innerWidth;
+                    this.x = Math.random() * innerWidth;
+                    this.y = Math.random() * innerHeight;
                 }
             }
-
             draw() {
-                let perspective = canvas.width / (this.z + canvas.width);
-                let x2d = (this.x - canvas.width/2) * perspective + canvas.width/2;
-                let y2d = (this.y - canvas.height/2) * perspective + canvas.height/2;
-                
+                let perspective = innerWidth / (this.z + innerWidth);
+                let x2d = (this.x - innerWidth/2) * perspective + innerWidth/2;
+                let y2d = (this.y - innerHeight/2) * perspective + innerHeight/2;
                 ctx.beginPath();
-                ctx.fillStyle = `rgba(255, 255, 255, ${1 - this.z/canvas.width})`;
-                ctx.arc(x2d, y2d, this.size * (1 - this.z/canvas.width), 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${1 - this.z/innerWidth})`;
+                ctx.arc(x2d, y2d, this.size * (1 - this.z/innerWidth), 0, Math.PI * 2);
                 ctx.fill();
             }
         }
 
-        function initParticles(scene) {
-            currentScene = scene;
+        function initParticles() {
             particles = [];
-            let count = 200;
-            if (scene === 'nebula') count = 100;
-            if (scene === 'binary') count = 300;
-            
-            for (let i = 0; i < count; i++) {
-                particles.push(new Particle(scene));
-            }
+            for (let i = 0; i < 200; i++) particles.push(new Particle());
         }
 
         function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // 场景颜色滤镜
-            if (currentScene === 'nebula') {
-                ctx.fillStyle = 'rgba(255, 100, 150, 0.02)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-            } else if (currentScene === 'blackhole') {
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-            }
-
-            particles.forEach(p => {
-                p.update();
-                p.draw();
-            });
-
+            particles.forEach(p => { p.update(); p.draw(); });
             requestAnimationFrame(animate);
-        }
-
-        // ================== 游戏逻辑 ==================
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            initParticles(currentScene);
         }
 
         function startTest() {
             home.style.display = 'none';
             quiz.style.display = 'block';
-            initParticles('stars');
             loadQuestion();
         }
 
@@ -232,47 +130,52 @@
         }
 
         function next() {
-            if (answers[current] === undefined) return;
+            if (answers[current] === undefined) { alert("请选择探测方向！"); return; }
             const dim = questions[current].d;
-            scores[dim] += (5 - answers[current]); // 权重
+            scores[dim] += (5 - answers[current]); 
             current++;
-            current < questions.length ? loadQuestion() : showResult();
+            if (current < questions.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
         }
 
         function showResult() {
             quiz.style.display = 'none';
             result.style.display = 'block';
 
-            // 计算匹配
-            let best = personalities[0];
-            let minDiff = Infinity;
-            personalities.forEach(p => {
-                const diff = Math.abs(scores.E - (p.type.includes('指挥官')?5:3)) + Math.abs(scores.N - (p.type.includes('观测者')?5:3));
-                if(diff < minDiff) { minDiff = diff; best = p; }
-            });
+            // 简单粗暴的匹配：谁分高选谁
+            let maxScore = -1;
+            let dominantTrait = 'E';
+            for (const key in scores) {
+                if (scores[key] > maxScore) {
+                    maxScore = scores[key];
+                    dominantTrait = key;
+                }
+            }
 
-            // 切换场景
-            initParticles(best.scene);
+            let matchedPersonality = personalities[0];
+            if (dominantTrait === 'O') matchedPersonality = personalities[1];
+            if (dominantTrait === 'C') matchedPersonality = personalities[2];
+            if (dominantTrait === 'E') matchedPersonality = personalities[3];
+            if (dominantTrait === 'N') matchedPersonality = personalities[4];
 
-            // 更新UI
-            document.getElementById('scene-title').innerText = best.type;
-            document.getElementById('type-desc').innerText = best.desc;
-            document.getElementById('scene-desc').innerText = best.comment;
-            document.getElementById('traits').innerHTML = best.traits.map(t => `<span style="display:inline-block;background:rgba(138,43,226,0.2);padding:5px 10px;border-radius:15px;margin:5px;">${t}</span>`).join('');
+            document.getElementById('scene-title').innerText = matchedPersonality.type;
+            document.getElementById('type-desc').innerText = matchedPersonality.desc;
+            document.getElementById('scene-desc').innerText = matchedPersonality.comment;
+            document.getElementById('traits').innerHTML = matchedPersonality.traits.map(t => `<span style="display:inline-block;background:rgba(138,43,226,0.2);padding:5px 10px;border-radius:15px;margin:5px;">${t}</span>`).join('');
         }
 
-        // ================== 初始化 ==================
         window.onload = () => {
             canvas = document.getElementById('universe');
             ctx = canvas.getContext('2d');
-            resize();
+            canvas.width = innerWidth;
+            canvas.height = innerHeight;
+            initParticles();
             animate();
-            
-            window.addEventListener('mousemove', e => {
-                mouse.x = e.clientX;
-                mouse.y = e.clientY;
-            });
-            window.addEventListener('resize', resize);
+            window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+            window.addEventListener('resize', () => { canvas.width = innerWidth; canvas.height = innerHeight; });
         };
     </script>
 </body>
