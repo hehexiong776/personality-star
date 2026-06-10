@@ -2,190 +2,278 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>星空性格宇宙 · 深度版</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>星空性格 · 星际航行</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+SC:wght@300;400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; color: white; }
         
-        :root { --bg: #0a0e29; --purple: #8a2be2; --blue: #4169e1; --gold: #ffd700; }
-        body { margin: 0; font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: #e0e0ff; min-height: 100vh; overflow-x: hidden; }
-        .stars { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%); }
-        .star { position: absolute; background: white; border-radius: 50%; animation: twinkle 2s infinite alternate; }
-        @keyframes twinkle { from { opacity: 0.3; } to { opacity: 1; } }
+        /* 画布层 */
+        #universe { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
         
-        .container { max-width: 800px; margin: auto; padding: 20px; }
-        header { text-align: center; padding: 40px 0; }
-        h1 { font-family: 'Orbitron', sans-serif; font-size: 2.8rem; background: linear-gradient(90deg, var(--purple), var(--blue), var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: 0 0 20px rgba(138, 43, 226, 0.5); }
+        /* UI层 */
+        .ui-container { position: relative; z-index: 10; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
+        .panel { background: rgba(10, 14, 41, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(100, 100, 255, 0.2); border-radius: 20px; padding: 40px; max-width: 600px; width: 90%; text-align: center; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
         
-        .panel { display: none; background: rgba(16, 20, 48, 0.9); border-radius: 20px; padding: 40px; margin-top: 20px; border: 1px solid rgba(100, 100, 255, 0.2); backdrop-filter: blur(10px); animation: fadeIn 0.8s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        h1 { font-family: 'Orbitron', sans-serif; font-size: 2.5rem; background: linear-gradient(90deg, #8a2be2, #4169e1, #00bfff); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 10px; }
+        p { color: #a0a0ff; line-height: 1.6; }
+        button { background: linear-gradient(135deg, #8a2be2, #4169e1); border: none; padding: 15px 40px; font-size: 1.1rem; color: white; border-radius: 50px; cursor: pointer; margin-top: 20px; transition: all 0.3s ease; font-family: 'Orbitron'; }
+        button:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(138, 43, 226, 0.7); }
         
-        .btn { display: inline-block; padding: 15px 50px; font-size: 1.2rem; background: linear-gradient(135deg, var(--purple), var(--blue)); color: white; border: none; border-radius: 50px; cursor: pointer; margin-top: 20px; transition: all 0.3s ease; }
-        .btn:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(138, 43, 226, 0.7); }
+        /* 测试面板 */
+        .option { background: rgba(255,255,255,0.05); padding: 15px; margin: 10px 0; border-radius: 10px; cursor: pointer; border: 1px solid transparent; transition: all 0.3s ease; text-align: left; }
+        .option:hover { background: rgba(65, 105, 225, 0.3); border-color: #4169e1; transform: translateX(10px); }
+        .option.selected { background: rgba(138, 43, 226, 0.3); border-color: #8a2be2; }
         
-        .question-text { font-size: 1.5rem; margin-bottom: 30px; color: white; }
-        .option { background: rgba(30, 35, 70, 0.7); padding: 15px 20px; margin: 10px 0; border-radius: 10px; cursor: pointer; border: 1px solid transparent; transition: all 0.3s ease; }
-        .option:hover { background: rgba(65, 105, 225, 0.3); border-color: var(--blue); transform: translateX(10px); }
-        .option.selected { background: rgba(138, 43, 226, 0.3); border-color: var(--purple); }
-        
-        .loader { display: none; text-align: center; padding: 50px; }
-        .spinner { width: 80px; height: 80px; border: 8px solid rgba(255,255,255,0.1); border-top: 8px solid var(--purple); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .result-title { font-size: 2.5rem; color: var(--gold); margin: 20px 0; }
-        .radar-container { max-width: 400px; margin: 30px auto; }
-        .trait-tag { display: inline-block; background: rgba(138, 43, 226, 0.2); border: 1px solid var(--purple); padding: 8px 15px; border-radius: 20px; margin: 5px; }
-        .comment { font-style: italic; color: #aaa; margin-top: 20px; border-left: 3px solid var(--blue); padding-left: 15px; }
+        /* 结果面板 */
+        #result { display: none; }
+        #scene-title { font-size: 2rem; color: #ffd700; margin: 20px 0; font-family: 'Orbitron'; }
+        #scene-desc { font-style: italic; border-left: 3px solid #4169e1; padding-left: 15px; margin-top: 20px; }
     </style>
 </head>
 <body>
-    <div class="stars" id="stars"></div>
-    <div class="container">
-        <header><h1>🌌 星空性格宇宙</h1><p>深度解析你的内在星系</p></header>
-        
-        <div id="home" class="panel" style="display:block;">
-            <h2>准备发射</h2>
-            <p>本次航行包含 12 道星域探测题，系统将根据你的选择生成专属星图。</p>
-            <button class="btn" onclick="startTest()">启动引擎</button>
+    <canvas id="universe"></canvas>
+    <div class="ui-container">
+        <div id="home" class="panel">
+            <h1>🌌 星际航行</h1>
+            <p>准备启动曲速引擎，探索你的性格星系。</p>
+            <button onclick="startTest()">启动引擎</button>
         </div>
-        
-        <div id="quiz" class="panel">
-            <div id="question" class="question-text"></div>
+
+        <div id="quiz" class="panel" style="display:none;">
+            <h2 id="q-text"></h2>
             <div id="options"></div>
-            <button class="btn" onclick="nextQuestion()">下一站</button>
+            <button onclick="next()">确认航向</button>
         </div>
-        
-        <div id="loading" class="loader">
-            <div class="spinner"></div>
-            <h2>正在校准星轨...</h2>
-            <p>分析你的性格引力波</p>
-        </div>
-        
-        <div id="result" class="panel">
-            <h2>探测完毕</h2>
-            <div class="result-title" id="typeName"></div>
-            <div class="radar-container"><canvas id="radarChart"></canvas></div>
-            <p id="typeDesc"></p>
+
+        <div id="result" class="panel" style="display:none;">
+            <h2>抵达目的地</h2>
+            <div id="scene-title"></div>
+            <p id="type-desc"></p>
             <div id="traits"></div>
-            <p class="comment" id="comment"></p>
-            <button class="btn" onclick="location.reload()">重新探测</button>
+            <p id="scene-desc"></p>
+            <button onclick="location.reload()">重新航行</button>
         </div>
     </div>
 
     <script>
+        // ================== 配置 ==================
         const questions = [
-            { q: "周末你倾向于？", o: ["策划聚会", "独自充电", "户外探险", "整理家务"], d: "E" },
-            { q: "面对突发状况？", o: ["兴奋挑战", "冷静分析", "焦虑不安", "随遇而安"], d: "N" },
-            { q: "做事风格？", o: ["严格计划", "大概方向", "随心所欲", "参考经验"], d: "C" },
-            { q: "朋友倾诉时？", o: ["给方案", "陪吐槽", "安慰", "讲道理"], d: "A" },
-            { q: "对新事物的态度？", o: ["首批尝鲜", "观望", "谨慎", "无感"], d: "O" },
-            { q: "工作中最看重？", o: ["成就感", "稳定性", "人际关系", "能力提升"], d: "C" },
-            { q: "犯错时反应？", o: ["立刻修正", "反思自责", "找借口", "无所谓"], d: "N" },
-            { q: "社交能量来源？", o: ["人群", "独处", "小圈子", "线上"], d: "E" },
-            { q: "如何看待规则？", o: ["遵守", "灵活运用", "打破", "无视"], d: "C" },
-            { q: "看到不公之事？", o: ["挺身而出", "默默忍受", "理性分析", "转移话题"], d: "A" },
-            { q: "想象力水平？", o: ["天马行空", "基于现实", "偶尔闪现", "几乎为零"], d: "O" },
-            { q: "做决定依据？", o: ["直觉", "逻辑", "他人意见", "过往经验"], d: "A" }
+            { q: "航行模式？", o: ["舰队指挥", "单人漂泊", "护航任务", "外交访问", "深空侦察"], d: "E" },
+            { q: "遭遇陨石带？", o: ["强行突破", "绕道而行", "建立屏障", "呼叫支援", "分析弱点"], d: "N" },
+            { q: "能源管理？", o: ["严格配额", "按需分配", "节省为主", "尽情挥霍", "寻找新能源"], d: "C" },
+            { q: "发现未知生命？", o: ["接触交流", "观察记录", "保护距离", "捕获研究", "分享情报"], d: "A" },
+            { q: "飞船装饰风格？", o: ["实用金属", "艺术涂鸦", "古典庄严", "温馨舒适", "极简虚空"], d: "O" }
         ];
-        
+
         const personalities = [
-            { type: "🚀 宇宙指挥官", desc: "你拥有极强的掌控欲和领导力，像一颗恒星般耀眼。你擅长统筹全局，执行力满分，但偶尔也要听听船员的心声。", traits: ["果断","战略","自信","目标导向"], scores: {O:3,C:5,E:4,A:2,N:2}, comment: "你的气场就是引力，所有人都会不由自主地被你吸引。" },
-            { type: "🎨 流浪诗人", desc: "你的内心是一座流动的美术馆。你追求自由与美感，讨厌束缚，总能发现被忽略的细节。", traits: ["创意","感性","自由","理想主义"], scores: {O:5,C:2,E:3,A:4,N:3}, comment: "生活不止眼前的苟且，还有诗和远方的田野。" },
-            { type: "🛡️ 守护卫士", desc: "你是团队的基石，稳重可靠。你重视承诺和传统，虽然不善言辞，但行动力惊人。", traits: ["忠诚","务实","负责","条理"], scores: {O:2,C:5,E:2,A:4,N:2}, comment: "有你在，大家就觉得安心，你是所有人的避风港。" },
-            { type: "☄️ 社交彗星", desc: "你充满活力，走到哪里就把快乐带到哪里。你的社交网络遍布星系，但也要记得给自己留点独处时间。", traits: ["热情","沟通","乐观","人脉"], scores: {O:3,C:3,E:5,A:4,N:2}, comment: "你的笑容具有感染力，是团队里的气氛调节剂。" },
-            { type: "🔬 虚空观察者", desc: "你习惯抽离视角看待世界，理性而冷静。你不喜欢过于热闹的环境，更喜欢在安静中思考宇宙的真理。", traits: ["理性","独立","深刻","低调"], scores: {O:4,C:4,E:1,A:3,N:4}, comment: "沉默是你的保护色，思考是你的超能力。" }
+            { 
+                type: "🚀 脉冲星指挥官", 
+                desc: "你习惯于掌控全局，你的意志如同脉冲星般规律而强大，指引舰队前行。",
+                traits: ["决断", "战略", "威严"],
+                scene: "pulsar", // 对应场景
+                comment: "前方出现规律闪烁的脉冲星，能量波动稳定，适合建立指挥中心。"
+            },
+            { 
+                type: "🎨 星云流浪者", 
+                desc: "你享受自由的漂泊，你的思绪如同星云般绚烂且不可捉摸。",
+                traits: ["浪漫", "自由", "感性"],
+                scene: "nebula",
+                comment: "你正漂流在一片粉紫色的星云中，粒子轻柔地拂过舷窗。"
+            },
+            { 
+                type: "🛡️ 双星守护者", 
+                desc: "你是稳定的基石，如同相互守护的双星，为周围提供恒定的安全感。",
+                traits: ["忠诚", "稳定", "责任"],
+                scene: "binary",
+                comment: "两颗巨大的行星在你周围互旋，形成完美的引力平衡。"
+            },
+            { 
+                type: "☄️ 虫洞穿梭客", 
+                desc: "你是能量的传递者，在星际网络中跳跃，连接不同的文明。",
+                traits: ["活力", "连接", "热情"],
+                scene: "wormhole",
+                comment: "前方出现扭曲的虫洞，光线被拉长，准备进行超空间跳跃！"
+            },
+            { 
+                type: "🔭 虚空观测者", 
+                desc: "你站在寂静的彼岸，冷静地注视着宇宙的熵增与秩序。",
+                traits: ["理性", "深邃", "孤独"],
+                scene: "blackhole",
+                comment: "警告：前方引力异常！一个巨大的黑洞正在吞噬周围的光。"
+            }
         ];
 
+        // ================== 全局变量 ==================
         let current = 0, answers = [], scores = {O:0,C:0,E:0,A:0,N:0};
+        let canvas, ctx, particles = [];
+        let mouse = { x: window.innerWidth/2, y: window.innerHeight/2 };
+        let currentScene = 'stars'; // 当前场景
 
-        function createStars() {
-            const c = document.getElementById('stars');
-            for(let i=0;i<150;i++) {
-                const s = document.createElement('div');
-                s.className = 'star';
-                s.style.width = s.style.height = Math.random()*3+1+'px';
-                s.style.left = Math.random()*100+'%';
-                s.style.top = Math.random()*100+'%';
-                s.style.animationDelay = Math.random()*2+'s';
-                c.appendChild(s);
+        // ================== 粒子系统 ==================
+        class Particle {
+            constructor(scene) {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.z = Math.random() * canvas.width; // 深度
+                this.size = Math.random() * 2 + 0.5;
+                this.speed = Math.random() * 0.5 + 0.2;
+                this.scene = scene;
             }
+
+            update() {
+                // 根据场景更新逻辑
+                if (this.scene === 'wormhole') {
+                    // 虫洞：向中心收缩
+                    let dx = canvas.width/2 - this.x;
+                    let dy = canvas.height/2 - this.y;
+                    this.x += dx * 0.01;
+                    this.y += dy * 0.01;
+                    this.z -= 5; // 快速前进
+                } else if (this.scene === 'blackhole') {
+                    // 黑洞：螺旋吸入
+                    let angle = Math.atan2(this.y - canvas.height/2, this.x - canvas.width/2);
+                    let radius = Math.sqrt(Math.pow(this.x - canvas.width/2, 2) + Math.pow(this.y - canvas.height/2, 2));
+                    this.x = canvas.width/2 + radius * Math.cos(angle + 0.02);
+                    this.y = canvas.height/2 + radius * Math.sin(angle + 0.02);
+                    this.z += 0.5;
+                } else if (this.scene === 'pulsar') {
+                    // 脉冲星：规律闪烁
+                    this.x += (mouse.x/100 - this.x) * 0.001;
+                    this.z -= this.speed;
+                } else {
+                    // 默认：星空飞行
+                    this.z -= this.speed;
+                }
+
+                if (this.z < 1) {
+                    this.z = canvas.width;
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                }
+            }
+
+            draw() {
+                let perspective = canvas.width / (this.z + canvas.width);
+                let x2d = (this.x - canvas.width/2) * perspective + canvas.width/2;
+                let y2d = (this.y - canvas.height/2) * perspective + canvas.height/2;
+                
+                ctx.beginPath();
+                ctx.fillStyle = `rgba(255, 255, 255, ${1 - this.z/canvas.width})`;
+                ctx.arc(x2d, y2d, this.size * (1 - this.z/canvas.width), 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles(scene) {
+            currentScene = scene;
+            particles = [];
+            let count = 200;
+            if (scene === 'nebula') count = 100;
+            if (scene === 'binary') count = 300;
+            
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle(scene));
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 场景颜色滤镜
+            if (currentScene === 'nebula') {
+                ctx.fillStyle = 'rgba(255, 100, 150, 0.02)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            } else if (currentScene === 'blackhole') {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        // ================== 游戏逻辑 ==================
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initParticles(currentScene);
         }
 
         function startTest() {
             home.style.display = 'none';
             quiz.style.display = 'block';
+            initParticles('stars');
             loadQuestion();
         }
 
         function loadQuestion() {
             const q = questions[current];
-            question.innerText = `星域 ${current+1}/${questions.length}: ${q.q}`;
+            qText.innerText = `星域 ${current+1}/${questions.length}: ${q.q}`;
             options.innerHTML = '';
             q.o.forEach((opt, i) => {
                 const div = document.createElement('div');
                 div.className = 'option';
                 div.innerText = opt;
-                div.onclick = () => selectOption(i, div);
+                div.onclick = () => select(i, div);
                 options.appendChild(div);
             });
         }
 
-        function selectOption(i, el) {
+        function select(i, el) {
             document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
             el.classList.add('selected');
             answers[current] = i;
         }
 
-        function nextQuestion() {
-            if(answers[current] === undefined) return alert('请选择探测方向！');
-            const map = {O:0, C:0, E:0, A:0, N:0};
+        function next() {
+            if (answers[current] === undefined) return;
             const dim = questions[current].d;
-            map[dim] = 4 - answers[current]; 
-            scores.O += map.O; scores.C += map.C; scores.E += map.E; scores.A += map.A; scores.N += map.N;
-            
+            scores[dim] += (5 - answers[current]); // 权重
             current++;
-            if(current < questions.length) loadQuestion();
-            else showResult();
+            current < questions.length ? loadQuestion() : showResult();
         }
 
         function showResult() {
             quiz.style.display = 'none';
-            loading.style.display = 'block';
-            
-            setTimeout(() => {
-                loading.style.display = 'none';
-                result.style.display = 'block';
-                
-                let bestMatch = personalities[0];
-                let minDiff = Infinity;
-                personalities.forEach(p => {
-                    const diff = Math.abs(scores.O - p.scores.O) + Math.abs(scores.C - p.scores.C) + Math.abs(scores.E - p.scores.E) + Math.abs(scores.A - p.scores.A) + Math.abs(scores.N - p.scores.N);
-                    if(diff < minDiff) { minDiff = diff; bestMatch = p; }
-                });
+            result.style.display = 'block';
 
-                document.getElementById('typeName').innerText = bestMatch.type;
-                document.getElementById('typeDesc').innerText = bestMatch.desc;
-                document.getElementById('comment').innerText = bestMatch.comment;
-                
-                const traitsHtml = bestMatch.traits.map(t => `<span class="trait-tag">${t}</span>`).join('');
-                document.getElementById('traits').innerHTML = traitsHtml;
-                
-                renderChart(bestMatch.scores);
-            }, 2000);
-        }
-
-        function renderChart(data) {
-            new Chart(document.getElementById('radarChart'), {
-                type: 'radar',
-                data: {
-                    labels: ['开放性', '尽责性', '外向性', '宜人性', '情绪稳定'],
-                    datasets: [{ label: '你的星图', data: [data.O*2, data.C*2, data.E*2, data.A*2, (6-data.N)*2], backgroundColor: 'rgba(138,43,226,0.3)', borderColor: '#8a2be2', pointBackgroundColor: '#4169e1' }]
-                },
-                options: { scales: { r: { angleLines: { color: 'rgba(255,255,255,0.1)' }, grid: { color: 'rgba(255,255,255,0.1)' }, pointLabels: { color: '#e0e0ff' }, ticks: { display: false } } }, plugins: { legend: { labels: { color: '#e0e0ff' } } } }
+            // 计算匹配
+            let best = personalities[0];
+            let minDiff = Infinity;
+            personalities.forEach(p => {
+                const diff = Math.abs(scores.E - (p.type.includes('指挥官')?5:3)) + Math.abs(scores.N - (p.type.includes('观测者')?5:3));
+                if(diff < minDiff) { minDiff = diff; best = p; }
             });
+
+            // 切换场景
+            initParticles(best.scene);
+
+            // 更新UI
+            document.getElementById('scene-title').innerText = best.type;
+            document.getElementById('type-desc').innerText = best.desc;
+            document.getElementById('scene-desc').innerText = best.comment;
+            document.getElementById('traits').innerHTML = best.traits.map(t => `<span style="display:inline-block;background:rgba(138,43,226,0.2);padding:5px 10px;border-radius:15px;margin:5px;">${t}</span>`).join('');
         }
 
-        createStars();
+        // ================== 初始化 ==================
+        window.onload = () => {
+            canvas = document.getElementById('universe');
+            ctx = canvas.getContext('2d');
+            resize();
+            animate();
+            
+            window.addEventListener('mousemove', e => {
+                mouse.x = e.clientX;
+                mouse.y = e.clientY;
+            });
+            window.addEventListener('resize', resize);
+        };
     </script>
 </body>
 </html>
